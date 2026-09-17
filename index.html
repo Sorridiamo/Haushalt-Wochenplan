@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Haushalt-Wochenplan</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,'Helvetica Neue',Helvetica,sans-serif;background:#f5f5f7;color:#1d1d1f;min-height:100vh}
+
+/* Header */
+.header{background:#1d1d1f;color:#fff;padding:16px 20px;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:600;text-align:center;margin-bottom:12px}
+.week-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}
+.week-nav button{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.week-nav button:hover{background:rgba(255,255,255,.25)}
+.week-info{text-align:center;min-width:280px}
+.week-info .kw{font-size:15px;font-weight:600}
+.week-info .dates{font-size:12px;opacity:.7;margin-top:2px}
+.week-badge{display:inline-block;background:#5856D6;color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:8px}
+.week-badge.b{background:#FF9500}
+
+/* Sync indicator */
+.sync-status{text-align:center;margin-top:6px;font-size:10px}
+.sync-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.sync-dot.online{background:#34C759}
+.sync-dot.offline{background:#FF3B30}
+
+/* Filter */
+.filter-bar{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.filter-btn{border:none;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,.12);color:#fff;transition:all .2s}
+.filter-btn.active{background:#fff;color:#1d1d1f}
+.filter-btn[data-person="Marco"].active{background:#5856D6;color:#fff}
+.filter-btn[data-person="Noela"].active{background:#FF2D55;color:#fff}
+.filter-btn[data-person="Simeo"].active{background:#34C759;color:#fff}
+
+/* Progress */
+.progress-bar-wrap{display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:12px;flex-wrap:wrap}
+.progress-item{display:flex;align-items:center;gap:6px}
+.progress-dot{width:8px;height:8px;border-radius:50%}
+.progress-dot.marco{background:#5856D6}
+.progress-dot.noela{background:#FF2D55}
+.progress-dot.simeo{background:#34C759}
+
+/* Time summary row */
+.time-summary{display:flex;justify-content:center;gap:20px;margin-top:6px;font-size:11px;opacity:.8;flex-wrap:wrap}
+.time-summary .ts-item{display:flex;align-items:center;gap:4px}
+
+/* Days grid */
+.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:12px;max-width:1400px;margin:0 auto}
+@media(max-width:1100px){.days-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:700px){.days-grid{grid-template-columns:1fr;max-width:500px}}
+
+/* Day column */
+.day-col{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.day-header{padding:10px 12px;font-weight:600;font-size:13px;border-bottom:1px solid #e5e5ea;display:flex;justify-content:space-between;align-items:center}
+.day-header .day-name{color:#1d1d1f}
+.day-header .day-date{color:#86868b;font-weight:400;font-size:12px}
+.day-header.today{background:#007AFF;color:#fff}
+.day-header.today .day-date{color:rgba(255,255,255,.7)}
+.day-progress{height:3px;background:#e5e5ea}
+.day-progress-fill{height:100%;background:#34C759;transition:width .3s}
+
+/* Day time summary */
+.day-time-bar{padding:6px 12px;background:#f9f9fb;display:flex;justify-content:space-between;font-size:11px;color:#86868b;border-bottom:1px solid #f0f0f0}
+.day-time-bar .remaining{font-weight:600;color:#FF3B30}
+.day-time-bar .remaining.alldone{color:#34C759}
+
+/* Category header */
+.cat-header{padding:6px 12px 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#86868b;border-top:1px solid #f0f0f0;margin-top:2px}
+.cat-header:first-child{border-top:none;margin-top:0}
+
+/* Task item */
+.task-item{display:flex;align-items:flex-start;padding:5px 12px;gap:8px;border-bottom:1px solid #f5f5f7}
+.task-item:last-child{border-bottom:none}
+.task-item.done{opacity:.5}
+.task-item.done .task-name{text-decoration:line-through}
+.task-check{width:18px;height:18px;border-radius:4px;border:2px solid #c7c7cc;cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.task-check.checked{border-color:#34C759;background:#34C759}
+.task-check.checked::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.task-name{font-size:12px;line-height:1.3;flex:1}
+.task-meta{display:flex;align-items:center;gap:4px}
+.task-time{font-size:10px;color:#86868b;font-style:italic}
+.task-mins{font-size:10px;color:#007AFF;font-weight:600;white-space:nowrap}
+.person-badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;flex-shrink:0;color:#fff;margin-top:1px}
+.person-badge.marco{background:#5856D6}
+.person-badge.noela{background:#FF2D55}
+.person-badge.simeo{background:#34C759}
+
+/* Empty day */
+.day-empty{padding:20px;text-align:center;color:#c7c7cc;font-size:12px}
+
+/* Footer */
+.footer{text-align:center;padding:20px;font-size:11px;color:#86868b}
+
+@media print{
+  .header{position:static;background:#fff;color:#1d1d1f}
+  .week-nav button,.filter-bar,.progress-bar-wrap,.time-summary,.sync-status{display:none}
+  .week-badge{border:1px solid #1d1d1f}
+  .days-grid{grid-template-columns:repeat(7,1fr)}
+  .day-col{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Haushalt-Wochenplan</h1>
+  <div class="week-nav">
+    <button id="prevWeek">◂</button>
+    <div class="week-info">
+      <div class="kw" id="kwLabel"></div>
+      <div class="dates" id="dateLabel"></div>
+    </div>
+    <button id="nextWeek">▸</button>
+  </div>
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-person="Alle">Alle</button>
+    <button class="filter-btn" data-person="Marco">Marco</button>
+    <button class="filter-btn" data-person="Noela">Noela</button>
+    <button class="filter-btn" data-person="Simeo">Simeo</button>
+  </div>
+  <div class="progress-bar-wrap" id="progressWrap"></div>
+  <div class="time-summary" id="timeSummary"></div>
+  <div class="sync-status" id="syncStatus"></div>
+</div>
+
+<div class="days-grid" id="daysGrid"></div>
+<div class="footer">Wochenplan · Rotation A/B ab KW 39 (21. Sep 2026) · Echtzeit-Sync via Firebase</div>
+
+<!-- Firebase SDK (compat for vanilla JS) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════════════════════
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBymaWmeMnjgMJizoDJ81oDAnaFnq411Ms",
+  authDomain: "haushalt-wochenplan.firebaseapp.com",
+  databaseURL: "https://haushalt-wochenplan-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "haushalt-wochenplan",
+  storageBucket: "haushalt-wochenplan.firebasestorage.app",
+  messagingSenderId: "974328799738",
+  appId: "1:974328799738:web:55169b76563d6e3fbd8443"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Connection status indicator
+const connRef = db.ref('.info/connected');
+connRef.on('value', snap => {
+  const el = document.getElementById('syncStatus');
+  if (snap.val() === true) {
+    el.innerHTML = '<span class="sync-dot online"></span>Verbunden — Echtzeit-Sync aktiv';
+  } else {
+    el.innerHTML = '<span class="sync-dot offline"></span>Offline — Änderungen werden beim Verbinden synchronisiert';
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+
+const DAY_NAMES = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const PERSONS = ['Marco','Noela','Simeo'];
+
+const ROT = {
+  block1:    {A:'Noela',  B:'Simeo'},
+  block2:    {A:'Simeo',  B:'Noela'},
+  waesche:   {A:'Noela',  B:'Simeo'},
+  kuecheW:   {A:'Simeo',  B:'Noela'},
+  ordnung:   {A:'Simeo',  B:'Noela'},
+  putzWZ:    {A:'Noela',  B:'Simeo'},
+  putzGang:  {A:'Simeo',  B:'Noela'},
+  pflanzen:  {A:'Noela',  B:'Simeo'},
+  gruen:     {A:'Simeo',  B:'Noela'},
+  kehricht:  {A:'Noela',  B:'Simeo'},
+};
+
+const CAT_ORDER = ['Betten','Tiere','Küche','Waschen','Entsorgung','Ordnung','Putzen','Pflanzen','Einkaufen','Buchhaltung'];
+
+const TASKS = [
+  // ── TÄGLICH ──
+  {id:'bett',       name:'Bett machen',                    cat:'Betten',  days:'daily', assign:'self', mins:5},
+  {id:'zimmer-aufr',name:'Zimmer aufräumen',               cat:'Putzen',  days:[3], assign:'self', time:'Abend', mins:10},
+
+  // Hasen (Marco)
+  {id:'hasen-raus',  name:'Hasen rauslassen',              cat:'Tiere', days:'daily', assign:'Marco', time:'Vormittag', mins:2},
+  {id:'hasen-futter',name:'Hasen Futter geben',            cat:'Tiere', days:'daily', assign:'Marco', time:'Vormittag', mins:5},
+  {id:'hasen-heu',   name:'Hasen Heu nachgeben',           cat:'Tiere', days:'daily', assign:'Marco', time:'Vormittag', mins:5},
+  {id:'hasen-wasser',name:'Hasen Wasser ersetzen',         cat:'Tiere', days:'daily', assign:'Marco', time:'Vormittag', mins:3},
+  {id:'hasen-rein',  name:'Hasen reintun',                 cat:'Tiere', days:'daily', assign:'Marco', time:'Abend', mins:5},
+
+  // Katze (Noela)
+  {id:'katze-futter',name:'Katze Futter nachfüllen',       cat:'Tiere', days:'daily', assign:'Noela', mins:3},
+  {id:'katze-wasser',name:'Katze Wasser auffüllen',        cat:'Tiere', days:'daily', assign:'Noela', mins:2},
+
+  // Post (Noela)
+  {id:'post',        name:'Post rausnehmen + sortieren',   cat:'Buchhaltung', days:[1,2,3,4,5,6], assign:'Noela', mins:5},
+
+  // Küche Abend — Kochen (fester Plan pro Tag)
+  {id:'abend-kochen-n',name:'Abendessen vorbereiten / kochen', cat:'Küche', days:[2], assign:'Noela', mins:30},
+  {id:'abend-kochen-m',name:'Abendessen vorbereiten / kochen', cat:'Küche', days:[1,3,4,5], assign:'Marco', mins:30},
+  {id:'abend-kochen-s',name:'Abendessen vorbereiten / kochen', cat:'Küche', days:[6,7], assign:'Simeo', mins:30},
+  // Küche Abend Block 1 (Decken/Tisch/Wasser)
+  {id:'abend-decken-s',name:'Abendessen decken',               cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:5},
+  {id:'abend-tisch-s', name:'Esstisch putzen',                 cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:3},
+  {id:'abend-wasser-s',name:'Wasserflaschen neu füllen',       cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:2},
+  {id:'abend-decken-n',name:'Abendessen decken',               cat:'Küche', days:[2,4,6], assign:'Noela', mins:5},
+  {id:'abend-tisch-n', name:'Esstisch putzen',                 cat:'Küche', days:[2,4,6], assign:'Noela', mins:3},
+  {id:'abend-wasser-n',name:'Wasserflaschen neu füllen',       cat:'Küche', days:[2,4,6], assign:'Noela', mins:2},
+  {id:'abend-decken-p',name:'Abendessen decken',               cat:'Küche', days:[], assign:'Marco', mins:5},
+  {id:'abend-tisch-p', name:'Esstisch putzen',                 cat:'Küche', days:[], assign:'Marco', mins:3},
+  {id:'abend-wasser-p',name:'Wasserflaschen neu füllen',       cat:'Küche', days:[], assign:'Marco', mins:2},
+
+  // Küche Abend Block 2
+  {id:'abend-verr-s',  name:'Abendessen verräumen',            cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:10},
+  {id:'abend-herd-s',  name:'Herdplatten + Ablage putzen',     cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:5},
+  {id:'abend-spuel-s', name:'Geschirrspüler einräumen + starten', cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:10},
+  {id:'abend-becken-s',name:'Abwaschbecken putzen',            cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:2},
+  {id:'abend-verr-n',  name:'Abendessen verräumen',            cat:'Küche', days:[2,4,6], assign:'Noela', mins:10},
+  {id:'abend-herd-n',  name:'Herdplatten + Ablage putzen',     cat:'Küche', days:[2,4,6], assign:'Noela', mins:5},
+  {id:'abend-spuel-n', name:'Geschirrspüler einräumen + starten', cat:'Küche', days:[2,4,6], assign:'Noela', mins:10},
+  {id:'abend-becken-n',name:'Abwaschbecken putzen',            cat:'Küche', days:[2,4,6], assign:'Noela', mins:2},
+  {id:'abend-verr-p',  name:'Abendessen verräumen',            cat:'Küche', days:[], assign:'Marco', mins:10},
+  {id:'abend-herd-p',  name:'Herdplatten + Ablage putzen',     cat:'Küche', days:[], assign:'Marco', mins:5},
+  {id:'abend-spuel-p', name:'Geschirrspüler einräumen + starten', cat:'Küche', days:[], assign:'Marco', mins:10},
+  {id:'abend-becken-p',name:'Abwaschbecken putzen',            cat:'Küche', days:[], assign:'Marco', mins:2},
+
+  // Ordnung täglich
+  {id:'schuhe',      name:'Schuhe aufräumen (Eingang)',       cat:'Ordnung', days:'daily', assign:'ordnung', mins:3},
+  {id:'jacken',      name:'Jacken / Taschen aufhängen',      cat:'Ordnung', days:'daily', assign:'ordnung', mins:3},
+
+  // ── BESTIMMTE TAGE ──
+  {id:'w-gl', name:'Wäsche glätten + versorgen', cat:'Waschen', days:[6,7], assign:'waesche', mins:20},
+
+  // Grünabfall
+  {id:'gruen-raus', name:'Grünabfall rausstellen',       cat:'Entsorgung', days:[1], assign:'gruen', time:'Abend', mins:3},
+  {id:'gruen-rein', name:'Grünen Kübel reinholen',       cat:'Entsorgung', days:[2], assign:'gruen', mins:3},
+
+  // Kehricht
+  {id:'kehr-raus',  name:'Kehricht rausstellen',          cat:'Entsorgung', days:[4], assign:'kehricht', time:'Abend', mins:3},
+  {id:'kehr-rein',  name:'Kehricht Kübel reinholen',      cat:'Entsorgung', days:[5], assign:'kehricht', mins:3},
+
+  // ── WÖCHENTLICH (Samstag) ──
+  {id:'zi-saug',  name:'Zimmer staubsaugen',              cat:'Putzen', days:[6], assign:'self', mins:5},
+  {id:'zi-staub-m', name:'Zimmer Staub wischen (eigenes)',  cat:'Putzen', days:[6], assign:'Marco', mins:5},
+  {id:'zi-staub-s', name:'Zimmer Staub wischen',            cat:'Putzen', days:[6], assign:'Simeo', mins:5},
+  {id:'zi-staub-n', name:'Noela Zimmer Staub wischen',      cat:'Putzen', days:[6], assign:'Marco', mins:5},
+  {id:'zi-boden', name:'Zimmer Boden feucht wischen',     cat:'Putzen', days:[6], assign:'self', mins:5},
+
+  // Küche wöchentlich
+  {id:'kw-abfall', name:'Küchenabfall leeren',             cat:'Küche', days:[6], assign:'kuecheW', mins:5},
+  {id:'kw-kuehl',  name:'Kühlschrank kontrollieren',       cat:'Küche', days:[6], assign:'kuecheW', mins:5},
+  {id:'kw-ofen',   name:'Backofen reinigen',               cat:'Küche', days:[6], assign:'kuecheW', mins:5},
+  {id:'kw-mikro',  name:'Mikrowelle putzen',               cat:'Küche', days:[6], assign:'kuecheW', mins:5},
+  {id:'kw-kaffee', name:'Kaffeemaschine putzen',           cat:'Küche', days:[6], assign:'kuecheW', mins:5},
+  {id:'kw-schubl', name:'Schubladen reinigen (Handgriffe)',cat:'Küche', days:[6], assign:'kuecheW', mins:10},
+  {id:'kw-boden',  name:'Küchenboden wischen',             cat:'Küche', days:[6], assign:'kuecheW', mins:10},
+  {id:'kw-tuech',  name:'Spültücher + Handtücher ersetzen',cat:'Küche', days:[6], assign:'kuecheW', mins:3},
+
+  // Putzen andere Räume (nur Wochen ohne Putzfrau = Woche A)
+  {id:'p-wz',   name:'Wohnzimmer putzen',                 cat:'Putzen', days:[6], assign:'putzWZ', mins:10, biweekly:'A'},
+  {id:'p-buero',name:'Büro putzen',                        cat:'Putzen', days:[6], assign:'putzWZ', mins:5, biweekly:'A'},
+  {id:'p-gang', name:'Gang putzen',                        cat:'Putzen', days:[6], assign:'putzGang', mins:5, biweekly:'A'},
+  {id:'p-eg',   name:'Eingangsbereich putzen',             cat:'Putzen', days:[6], assign:'putzGang', mins:5, biweekly:'A'},
+  {id:'p-wk',   name:'Waschküche putzen',                  cat:'Putzen', days:[6], assign:'putzGang', mins:5, biweekly:'A'},
+
+  // Pflanzen
+  {id:'pfl-orch',name:'Orchidee 1h baden',                 cat:'Pflanzen', days:[6], assign:'pflanzen', mins:5},
+  {id:'pfl-wz',  name:'Pflanzen Wohnzimmer giessen',      cat:'Pflanzen', days:[6], assign:'pflanzen', mins:5},
+  {id:'pfl-nz',  name:'Pflanzen Noela Zimmer giessen',    cat:'Pflanzen', days:[6], assign:'pflanzen', mins:5},
+
+  // Hasen Misten (Marco) — Freitag
+  {id:'mist-1', name:'Hasenhaus putzen',                   cat:'Tiere', days:[5], assign:'Marco', mins:40},
+  {id:'mist-2', name:'Alle Kisten leeren',                 cat:'Tiere', days:[5], assign:'Marco', mins:5},
+  {id:'mist-3', name:'Kisten putzen + neu auffüllen',      cat:'Tiere', days:[5], assign:'Marco', mins:5},
+  {id:'mist-4', name:'Boden sauber machen',                cat:'Tiere', days:[5], assign:'Marco', mins:5},
+  {id:'mist-5', name:'Heu nachfüllen',                     cat:'Tiere', days:[5], assign:'Marco', mins:2},
+
+  // Ordnung wöchentlich
+  {id:'ord-side', name:'Sideboard Bad aufräumen',           cat:'Ordnung', days:[6], assign:'ordnung', mins:5},
+  {id:'ord-kue',  name:'Ablagestelle Küche aufräumen',     cat:'Ordnung', days:[6], assign:'ordnung', mins:5},
+
+  // Einkaufen Samstag (Marco)
+  {id:'eink-sa', name:'Einkaufen',                          cat:'Einkaufen', days:[6], assign:'Marco', mins:45},
+
+  // ── ALLE 2 WOCHEN (ohne Putzfrau = Woche A) ──
+  {id:'bad-du',  name:'Bad mit Dusche reinigen',            cat:'Putzen', days:[6], assign:'Noela',  biweekly:'A', mins:15},
+  {id:'bad-wa',  name:'Bad mit Badewanne reinigen',         cat:'Putzen', days:[6], assign:'Noela',  biweekly:'A', mins:20},
+  {id:'bad-ga',  name:'Gäste-WC reinigen',                  cat:'Putzen', days:[6], assign:'Marco',  biweekly:'A', mins:7},
+  {id:'bad-si',  name:'Simeo-WC reinigen',                  cat:'Putzen', days:[6], assign:'Simeo',  biweekly:'A', mins:5},
+  {id:'bettw',   name:'Bettwäsche wechseln',                cat:'Betten', days:[6], assign:'self',   biweekly:'A', mins:10},
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+
+const REF_DATE = new Date(2026, 8, 21); // Sept 21 2026
+const REF_KW = 39;
+
+let currentWeekOffset = 0;
+let currentPerson = 'Alle';
+
+// Local cache of check states — synced from Firebase in real time
+let weekChecks = {};
+let currentListener = null;
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+
+function getWeekMonday(offset) {
+  const d = new Date(REF_DATE);
+  d.setDate(d.getDate() + offset * 7);
+  return d;
+}
+
+function getKW(offset) { return REF_KW + offset; }
+
+function getWeekType(offset) {
+  const kw = getKW(offset);
+  return kw % 2 === 1 ? 'A' : 'B';
+}
+
+function formatDate(d) {
+  return d.getDate() + '.' + (d.getMonth()+1) + '.';
+}
+
+function formatDateFull(d) {
+  const months = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  return d.getDate() + '. ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.getDate()===t.getDate() && d.getMonth()===t.getMonth() && d.getFullYear()===t.getFullYear();
+}
+
+function resolvePersons(assign, weekType) {
+  if (assign === 'self') return PERSONS.slice();
+  if (ROT[assign]) return [ROT[assign][weekType]];
+  return [assign];
+}
+
+function checkKey(taskId, person, dayNum) {
+  return taskId + '_' + person + '_' + dayNum;
+}
+
+function isChecked(taskId, person, dayNum) {
+  return weekChecks[checkKey(taskId, person, dayNum)] === true;
+}
+
+function setChecked(taskId, person, dayNum, val) {
+  const kw = getKW(currentWeekOffset);
+  const key = checkKey(taskId, person, dayNum);
+  const ref = db.ref('checks/kw' + kw + '/' + key);
+  if (val) {
+    ref.set(true);
+  } else {
+    ref.remove();
+  }
+  // Update local cache immediately for snappy UI
+  if (val) weekChecks[key] = true;
+  else delete weekChecks[key];
+}
+
+function fmtMins(m) {
+  if (m < 60) return m + ' Min';
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h} Std ${r} Min` : `${h} Std`;
+}
+
+// ═══════════════════════════════════════════════════════
+// FIREBASE LISTENER — real-time sync per week
+// ═══════════════════════════════════════════════════════
+
+function attachWeekListener() {
+  if (currentListener) currentListener.off();
+
+  const kw = getKW(currentWeekOffset);
+  currentListener = db.ref('checks/kw' + kw);
+
+  currentListener.on('value', snap => {
+    weekChecks = snap.val() || {};
+    renderUI();
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// TASK RESOLUTION
+// ═══════════════════════════════════════════════════════
+
+function getTasksForDay(weekOffset, dayNum, personFilter) {
+  const weekType = getWeekType(weekOffset);
+  const result = [];
+
+  for (const t of TASKS) {
+    const dayMatch = t.days === 'daily' || (Array.isArray(t.days) && t.days.includes(dayNum));
+    if (!dayMatch) continue;
+    if (t.biweekly && t.biweekly !== weekType) continue;
+
+    const persons = resolvePersons(t.assign, weekType);
+
+    for (const p of persons) {
+      if (personFilter === 'Alle' || personFilter === p) {
+        result.push({
+          id: t.id,
+          name: t.name,
+          cat: t.cat,
+          person: p,
+          time: t.time || '',
+          mins: t.mins || 0,
+          checked: isChecked(t.id, p, dayNum),
+        });
+      }
+    }
+  }
+
+  result.sort((a, b) => {
+    const ca = CAT_ORDER.indexOf(a.cat), cb = CAT_ORDER.indexOf(b.cat);
+    if (ca !== cb) return ca - cb;
+    return PERSONS.indexOf(a.person) - PERSONS.indexOf(b.person);
+  });
+
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+
+function renderUI() {
+  const weekType = getWeekType(currentWeekOffset);
+  const kw = getKW(currentWeekOffset);
+  const monday = getWeekMonday(currentWeekOffset);
+  const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+
+  document.getElementById('kwLabel').innerHTML =
+    `KW ${kw} <span class="week-badge ${weekType==='B'?'b':''}">${weekType==='A'?'Woche A':'Woche B'}</span>`;
+  document.getElementById('dateLabel').textContent =
+    `${formatDateFull(monday)} – ${formatDateFull(sunday)}`;
+
+  const progWrap = document.getElementById('progressWrap');
+  const timeSummary = document.getElementById('timeSummary');
+  let progHTML = '';
+  let timeHTML = '';
+
+  for (const p of PERSONS) {
+    let total = 0, done = 0, totalMins = 0, remainMins = 0;
+    for (let d = 1; d <= 7; d++) {
+      const tasks = getTasksForDay(currentWeekOffset, d, p);
+      total += tasks.length;
+      done += tasks.filter(t => t.checked).length;
+      for (const t of tasks) {
+        totalMins += t.mins;
+        if (!t.checked) remainMins += t.mins;
+      }
+    }
+    const cls = p.toLowerCase();
+    progHTML += `<div class="progress-item"><span class="progress-dot ${cls}"></span>${p}: ${done}/${total}</div>`;
+    timeHTML += `<div class="ts-item"><span class="progress-dot ${cls}"></span>${fmtMins(totalMins)} total · <strong>${fmtMins(remainMins)}</strong> offen</div>`;
+  }
+  progWrap.innerHTML = progHTML;
+  timeSummary.innerHTML = timeHTML;
+
+  const grid = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+
+  for (let d = 1; d <= 7; d++) {
+    const dayDate = new Date(monday);
+    dayDate.setDate(dayDate.getDate() + d - 1);
+    const tasks = getTasksForDay(currentWeekOffset, d, currentPerson);
+    const done = tasks.filter(t => t.checked).length;
+    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+
+    const totalMins = tasks.reduce((s, t) => s + t.mins, 0);
+    const remainMins = tasks.filter(t => !t.checked).reduce((s, t) => s + t.mins, 0);
+
+    const col = document.createElement('div');
+    col.className = 'day-col';
+    const today = isToday(dayDate);
+
+    col.innerHTML = `
+      <div class="day-header ${today?'today':''}">
+        <span class="day-name">${DAY_NAMES[d-1]}</span>
+        <span class="day-date">${formatDate(dayDate)}</span>
+      </div>
+      <div class="day-progress"><div class="day-progress-fill" style="width:${pct}%"></div></div>
+      <div class="day-time-bar">
+        <span>${fmtMins(totalMins)}</span>
+        <span class="remaining ${remainMins===0&&tasks.length?'alldone':''}">${remainMins===0&&tasks.length?'✓ Fertig':fmtMins(remainMins)+' offen'}</span>
+      </div>
+    `;
+
+    if (tasks.length === 0) {
+      col.innerHTML += '<div class="day-empty">Keine Aufgaben</div>';
+    } else {
+      let lastCat = '';
+      for (const t of tasks) {
+        if (t.cat !== lastCat) {
+          lastCat = t.cat;
+          const ch = document.createElement('div');
+          ch.className = 'cat-header';
+          ch.textContent = t.cat;
+          col.appendChild(ch);
+        }
+
+        const item = document.createElement('div');
+        item.className = 'task-item' + (t.checked ? ' done' : '');
+
+        const showPerson = currentPerson === 'Alle';
+        const timeStr = t.time ? `<span class="task-time">${t.time}</span>` : '';
+        const minsStr = t.mins ? `<span class="task-mins">${t.mins}′</span>` : '';
+        const badgeStr = showPerson
+          ? `<span class="person-badge ${t.person.toLowerCase()}">${t.person}</span>`
+          : '';
+
+        item.innerHTML = `
+          <div class="task-check ${t.checked?'checked':''}"
+               data-tid="${t.id}" data-person="${t.person}" data-day="${d}"></div>
+          <div style="flex:1">
+            <div class="task-name">${t.name}</div>
+            <div class="task-meta">${timeStr}${timeStr&&minsStr?' · ':''}${minsStr}</div>
+          </div>
+          ${badgeStr}
+        `;
+        col.appendChild(item);
+      }
+    }
+
+    grid.appendChild(col);
+  }
+
+  // Bind checkboxes
+  document.querySelectorAll('.task-check').forEach(el => {
+    el.addEventListener('click', function() {
+      const tid = this.dataset.tid;
+      const person = this.dataset.person;
+      const day = parseInt(this.dataset.day);
+      const wasChecked = isChecked(tid, person, day);
+      setChecked(tid, person, day, !wasChecked);
+      renderUI();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EVENT LISTENERS
+// ═══════════════════════════════════════════════════════
+
+document.getElementById('prevWeek').addEventListener('click', () => {
+  currentWeekOffset--;
+  attachWeekListener();
+});
+
+document.getElementById('nextWeek').addEventListener('click', () => {
+  currentWeekOffset++;
+  attachWeekListener();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    currentPerson = this.dataset.person;
+    renderUI();
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') { currentWeekOffset--; attachWeekListener(); }
+  if (e.key === 'ArrowRight') { currentWeekOffset++; attachWeekListener(); }
+});
+
+// ═══════════════════════════════════════════════════════
+// INIT — attach listener (triggers first render via on('value'))
+// ═══════════════════════════════════════════════════════
+
+attachWeekListener();
+</script>
+</body>
+</html>
