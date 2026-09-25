@@ -37,7 +37,29 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .dayinfo .ddate{font-size:13px;color:var(--mute);margin-top:2px}
 .kwbadge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#F0F0F4;color:var(--mute);margin-left:6px;vertical-align:2px}
 .kwbadge.putzfrau{background:#E6EFFB;color:#3A6FB0}
-.todaybtn{display:block;margin:10px auto 0;border:none;background:none;font-size:12px;color:#3A6FB0;cursor:pointer;font-weight:600}
+
+.toprow{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:10px}
+.todaybtn{border:none;background:none;font-size:12px;color:#3A6FB0;cursor:pointer;font-weight:600}
+.newbtn{border:1.5px solid var(--ink);background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:11px;cursor:pointer;transition:opacity .15s}
+.newbtn:hover{opacity:.85}
+
+/* ───── Neue-Aufgabe-Formular ───── */
+.newform{max-width:900px;margin:14px auto 0;padding:0 14px}
+.newcard{background:#fff;border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.newcard h3{font-size:14px;font-weight:800;margin-bottom:14px;letter-spacing:.2px}
+.fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(max-width:600px){.fgrid{grid-template-columns:1fr}}
+.fld{display:flex;flex-direction:column;gap:5px}
+.fld.full{grid-column:1/-1}
+.fld label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mute)}
+.fld input,.fld select{border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-size:14px;font-family:inherit;color:var(--ink);background:#fff;-webkit-appearance:none;appearance:none}
+.fld select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%238E8E93' d='M7 10l5 5 5-5z'/></svg>");background-repeat:no-repeat;background-position:right 8px center;background-size:18px;padding-right:30px}
+.fld input:focus,.fld select:focus{outline:none;border-color:#9FA0A6}
+.formacts{display:flex;gap:10px;margin-top:16px}
+.formacts button{flex:1;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.formacts .save{background:#34C759;color:#fff}
+.formacts .cancel2{background:#F0F0F4;color:var(--mute)}
+.fhint{font-size:11px;color:var(--mute);margin-top:10px;line-height:1.4}
 
 /* ───── Panels ───── */
 .panels{max-width:900px;margin:18px auto 0;padding:0 14px;display:flex;flex-direction:column;gap:16px}
@@ -58,7 +80,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .ptasks{flex:1;padding:12px 0}
 .slabel{font-size:10px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);padding:4px 16px 6px}
 .sdivider{height:1px;background:var(--line);margin:8px 16px 2px}
-.catlabel{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#B8B8C0;padding:6px 16px 2px}
+.catlabel{font-size:12px;font-weight:800;letter-spacing:.3px;color:#3A3A3C;padding:10px 16px 3px}
 
 /* ───── Task row ───── */
 .trow{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #F7F7F9;position:relative}
@@ -73,6 +95,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .tmins{font-size:12px;font-weight:700;color:var(--mute);white-space:nowrap;min-width:52px;text-align:right}
 .trow.faded{opacity:.42}
 .trow.faded .tname{font-style:italic}
+.newpill{display:inline-block;font-size:8px;font-weight:800;background:#E6EFFB;color:#3A6FB0;padding:2px 5px;border-radius:5px;margin-left:6px;vertical-align:1px;letter-spacing:.3px}
 
 /* Delegation button */
 .dbtn{width:30px;height:30px;border-radius:9px;border:none;background:#F4F4F7;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
@@ -80,6 +103,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .dbtn svg{width:16px;height:16px;fill:var(--mute)}
 .dbtn.active{background:var(--ink)}
 .dbtn.active svg{fill:#fff}
+.delbtn{width:26px;height:26px;border-radius:8px;border:none;background:#FDECEC;color:#B62F2F;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 
 /* Delegation tag */
 .dtag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:7px;white-space:nowrap;background:#F0F0F4;color:var(--mute)}
@@ -116,9 +140,10 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   .dayinfo{min-width:150px}
   .dayinfo .dname{font-size:19px}
   .panels{padding:0 10px}
+  .catlabel{font-size:11px}
 }
 @media print{
-  .topbar,.dbtn,.acts,.picker,.sync,.todaybtn{display:none}
+  .topbar,.dbtn,.acts,.picker,.sync,.todaybtn,.newbtn,.newform,.delbtn{display:none}
   .panel{box-shadow:none;border:1px solid #ddd}
 }
 </style>
@@ -140,7 +165,79 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
     </div>
     <button class="navbtn" id="nextDay">›</button>
   </div>
-  <button class="todaybtn" id="todayBtn">Heute</button>
+  <div class="toprow">
+    <button class="todaybtn" id="todayBtn">Heute</button>
+    <button class="newbtn" id="newBtn">+ Neue Aufgabe</button>
+  </div>
+</div>
+
+<div class="newform" id="newForm" style="display:none">
+  <div class="newcard">
+    <h3>Neue Aufgabe erfassen</h3>
+    <div class="fgrid">
+      <div class="fld full">
+        <label for="fName">Name der Aufgabe</label>
+        <input type="text" id="fName" placeholder="z.B. Velo putzen">
+      </div>
+      <div class="fld">
+        <label for="fFreq">Wie oft</label>
+        <select id="fFreq">
+          <option value="daily">Jeden Tag</option>
+          <option value="weekly" selected>Wöchentlich</option>
+          <option value="once">Einmalig</option>
+        </select>
+      </div>
+      <div class="fld" id="wrapDay">
+        <label for="fDay">Wochentag</label>
+        <select id="fDay">
+          <option value="1">Montag</option>
+          <option value="2">Dienstag</option>
+          <option value="3">Mittwoch</option>
+          <option value="4">Donnerstag</option>
+          <option value="5">Freitag</option>
+          <option value="6">Samstag</option>
+          <option value="7">Sonntag</option>
+        </select>
+      </div>
+      <div class="fld" id="wrapDate" style="display:none">
+        <label for="fDate">Datum</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="fld">
+        <label for="fWho">Wer führt sie aus</label>
+        <select id="fWho">
+          <option value="Marco">Marco</option>
+          <option value="Simeo">Simeo</option>
+          <option value="Noela">Noela</option>
+          <option value="self">Alle drei</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label for="fCat">Kategorie</label>
+        <select id="fCat"></select>
+      </div>
+      <div class="fld">
+        <label for="fTime">Tageszeit (optional)</label>
+        <select id="fTime">
+          <option value="">—</option>
+          <option value="Morgen">Morgen</option>
+          <option value="Vormittag">Vormittag</option>
+          <option value="Mittag">Mittag</option>
+          <option value="Nachmittag">Nachmittag</option>
+          <option value="Abend">Abend</option>
+        </select>
+      </div>
+      <div class="fld">
+        <label for="fMins">Dauer in Minuten</label>
+        <input type="number" id="fMins" value="10" min="1" max="600">
+      </div>
+    </div>
+    <div class="formacts">
+      <button class="cancel2" id="fCancel">Abbrechen</button>
+      <button class="save" id="fSave">Aufgabe hinzufügen</button>
+    </div>
+    <div class="fhint">Neue Aufgaben werden für alle Geräte gespeichert. Sie erscheinen mit einem blauen „Neu"-Zeichen und können über das rote ✕ wieder entfernt werden.</div>
+  </div>
 </div>
 
 <div class="panels" id="panels"></div>
@@ -189,20 +286,18 @@ const ROT = {
   kehricht: {A:'Noela', B:'Simeo'},
 };
 
-const CAT_ORDER = ['Betten','Tiere','Küche','Waschen','Entsorgung','Ordnung','Putzen','Pflanzen','Einkaufen','Buchhaltung'];
+const CAT_ORDER = ['Betten','Tiere','Küche','Waschen','Entsorgung','Ordnung','Putzen','Pflanzen','Einkaufen','Buchhaltung','Sonstiges'];
 
 const TASKS = [
   // ── TÄGLICH ──
   {id:'bett',        name:'Bett machen',                  cat:'Betten', days:'daily', assign:'self',  mins:5},
   {id:'hasen-raus',  name:'Hasen rauslassen',             cat:'Tiere',  days:'daily', assign:'Marco', time:'Vormittag', mins:2},
   {id:'hasen-futter',name:'Hasen Futter geben',           cat:'Tiere',  days:'daily', assign:'Marco', time:'Vormittag', mins:5},
-  {id:'hasen-heu',   name:'Hasen Heu nachgeben',          cat:'Tiere',  days:'daily', assign:'Marco', time:'Vormittag', mins:5},
   {id:'hasen-wasser',name:'Hasen Wasser ersetzen',        cat:'Tiere',  days:'daily', assign:'Marco', time:'Vormittag', mins:3},
   {id:'hasen-rein',  name:'Hasen reintun',                cat:'Tiere',  days:'daily', assign:'Marco', time:'Abend', mins:5},
   {id:'katze-futter',name:'Katze Futter nachfüllen',      cat:'Tiere',  days:'daily', assign:'Noela', mins:3},
   {id:'katze-wasser',name:'Katze Wasser auffüllen',       cat:'Tiere',  days:'daily', assign:'Noela', mins:2},
-  {id:'schuhe',      name:'Schuhe aufräumen (Eingang)',   cat:'Ordnung',days:'daily', assign:'ordnung', mins:3},
-  {id:'jacken',      name:'Jacken / Taschen aufhängen',   cat:'Ordnung',days:'daily', assign:'ordnung', mins:3},
+  {id:'eingang',     name:'Ordnung im Eingang (Schuhe, Jacken, Taschen)', cat:'Ordnung', days:'daily', assign:'ordnung', mins:6},
 
   // ── BESTIMMTE TAGE ──
   {id:'post',        name:'Post rausnehmen + sortieren',   cat:'Buchhaltung', days:[1,2,3,4,5,6], assign:'Noela', mins:5},
@@ -222,14 +317,10 @@ const TASKS = [
   {id:'abend-wasser-n',name:'Wasserflaschen neu füllen',  cat:'Küche', days:[2,4,6],   assign:'Noela', mins:2},
 
   // Küche Abend — Aufräumen
-  {id:'abend-verr-s',  name:'Abendessen verräumen',              cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:10},
-  {id:'abend-herd-s',  name:'Herdplatten + Ablage putzen',       cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:5},
-  {id:'abend-spuel-s', name:'Geschirrspüler einräumen + starten',cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:10},
-  {id:'abend-becken-s',name:'Abwaschbecken putzen',              cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:2},
-  {id:'abend-verr-n',  name:'Abendessen verräumen',              cat:'Küche', days:[2,4,6],   assign:'Noela', mins:10},
-  {id:'abend-herd-n',  name:'Herdplatten + Ablage putzen',       cat:'Küche', days:[2,4,6],   assign:'Noela', mins:5},
-  {id:'abend-spuel-n', name:'Geschirrspüler einräumen + starten',cat:'Küche', days:[2,4,6],   assign:'Noela', mins:10},
-  {id:'abend-becken-n',name:'Abwaschbecken putzen',              cat:'Küche', days:[2,4,6],   assign:'Noela', mins:2},
+  {id:'abend-verr-s',  name:'Abendessen verräumen und Geschirr in Geschirrspüler', cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:20},
+  {id:'abend-herd-s',  name:'Herdplatten + Ablage putzen',                          cat:'Küche', days:[1,3,5,7], assign:'Simeo', mins:5},
+  {id:'abend-verr-n',  name:'Abendessen verräumen und Geschirr in Geschirrspüler', cat:'Küche', days:[2,4,6],   assign:'Noela', mins:20},
+  {id:'abend-herd-n',  name:'Herdplatten + Ablage putzen',                          cat:'Küche', days:[2,4,6],   assign:'Noela', mins:5},
 
   // Entsorgung
   {id:'gruen-raus', name:'Grünabfall rausstellen',   cat:'Entsorgung', days:[1], assign:'gruen',    time:'Abend', mins:3},
@@ -237,17 +328,16 @@ const TASKS = [
   {id:'kehr-raus',  name:'Kehricht rausstellen',     cat:'Entsorgung', days:[4], assign:'kehricht', time:'Abend', mins:3},
   {id:'kehr-rein',  name:'Kehricht Kübel reinholen', cat:'Entsorgung', days:[5], assign:'kehricht', mins:3},
 
-  // Hasenstall misten — Freitag
-  {id:'mist-1', name:'Hasenhaus putzen',              cat:'Tiere', days:[5], assign:'Marco', mins:40},
-  {id:'mist-2', name:'Alle Kisten leeren',            cat:'Tiere', days:[5], assign:'Marco', mins:5},
-  {id:'mist-3', name:'Kisten putzen + neu auffüllen', cat:'Tiere', days:[5], assign:'Marco', mins:5},
-  {id:'mist-4', name:'Boden sauber machen',           cat:'Tiere', days:[5], assign:'Marco', mins:5},
-  {id:'mist-5', name:'Heu nachfüllen',                cat:'Tiere', days:[5], assign:'Marco', mins:2},
-
   // Wäsche — Wochenende
   {id:'w-gl', name:'Wäsche glätten + versorgen', cat:'Waschen', days:[6,7], assign:'waesche', mins:20},
 
-  // ── WOCHENAUFGABEN (Samstag) ──
+  // ── WOCHENAUFGABEN ──
+  // Hasenstall misten — Freitag
+  {id:'mist-1',    name:'Hasenhaus putzen',      cat:'Tiere', days:[5], assign:'Marco', mins:40, weekly:true},
+  {id:'mist-4',    name:'Boden sauber machen',   cat:'Tiere', days:[5], assign:'Marco', mins:5,  weekly:true},
+  {id:'hasen-heu', name:'Hasen Heu nachgeben',   cat:'Tiere', days:[5], assign:'Marco', mins:5,  weekly:true},
+
+  // Zimmer — Samstag
   {id:'zi-saug',   name:'Zimmer staubsaugen',            cat:'Putzen', days:[6], assign:'self',  mins:5, weekly:true},
   {id:'zi-staub-m',name:'Zimmer Staub wischen',          cat:'Putzen', days:[6], assign:'Marco', mins:5, weekly:true},
   {id:'zi-staub-s',name:'Zimmer Staub wischen',          cat:'Putzen', days:[6], assign:'Simeo', mins:5, weekly:true},
@@ -296,13 +386,18 @@ let dayOffset = 0;            // Tage seit REF_DATE
 let filterPerson = 'Alle';
 let checks = {};              // { key: true }
 let delegs = {};              // { key: {from,to,status} }
-let openPicker = null;        // key des offenen Übergabe-Menüs
+let customs = {};             // { id: {name,cat,freq,day,date,assign,mins,time} }
+let openPicker = null;
 let checkRef = null, delegRef = null;
 
 // ══════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════
 function dateFor(off){ const d = new Date(REF_DATE); d.setDate(d.getDate()+off); return d; }
+function isoOf(d){
+  const m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear()+'-'+m+'-'+dd;
+}
 function weekOffsetOf(off){ return Math.floor(off/7); }
 function dayNumOf(off){ return ((off%7)+7)%7 + 1; }          // 1=Mo … 7=So
 function kwOf(off){ return REF_KW + weekOffsetOf(off); }
@@ -328,7 +423,7 @@ function resolvePersons(assign, wt){
 function keyOf(taskId, owner, dayNum){ return taskId+'_'+owner+'_'+dayNum; }
 
 // ══════════════════════════════════════════════════════════
-// FIREBASE LISTENERS (pro Kalenderwoche)
+// FIREBASE LISTENERS
 // ══════════════════════════════════════════════════════════
 let boundKW = null;
 function bindWeek(){
@@ -345,6 +440,9 @@ function bindWeek(){
   delegRef = db.ref('delegations/kw'+kw);
   delegRef.on('value', s => { delegs = s.val() || {}; render(); });
 }
+
+// Eigene Aufgaben: global, nicht pro Woche
+db.ref('customTasks').on('value', s => { customs = s.val() || {}; render(); });
 
 function setCheck(key, val){
   const r = db.ref('checks/kw'+kwOf(dayOffset)+'/'+key);
@@ -363,6 +461,38 @@ function clearDeleg(key){
   db.ref('delegations/kw'+kwOf(dayOffset)+'/'+key).remove();
   delete delegs[key];
 }
+function addCustom(rec){ db.ref('customTasks').push(rec); }
+function removeCustom(id){ db.ref('customTasks/'+id).remove(); }
+
+// ══════════════════════════════════════════════════════════
+// AUFGABEN-LISTE (fix + eigene)
+// ══════════════════════════════════════════════════════════
+function allTasksFor(off){
+  const dn = dayNumOf(off), iso = isoOf(dateFor(off));
+  const list = TASKS.slice();
+
+  for (const id in customs){
+    const c = customs[id];
+    if (!c || !c.name) continue;
+    let match = false, weekly = false;
+    if (c.freq === 'daily')       { match = true; }
+    else if (c.freq === 'weekly') { match = Number(c.day) === dn; weekly = true; }
+    else if (c.freq === 'once')   { match = c.date === iso; }
+    if (!match) continue;
+
+    list.push({
+      id: 'c_'+id, customId: id,
+      name: c.name, cat: c.cat || 'Sonstiges',
+      days: 'daily',                       // Tagesprüfung ist hier schon erledigt
+      assign: c.assign || 'Marco',
+      mins: Number(c.mins) || 0,
+      time: c.time || '',
+      weekly: weekly,
+      once: c.freq === 'once',
+    });
+  }
+  return list;
+}
 
 // ══════════════════════════════════════════════════════════
 // INSTANZEN FÜR DEN TAG
@@ -370,7 +500,7 @@ function clearDeleg(key){
 function instancesForDay(off){
   const wt = weekTypeOf(off), dn = dayNumOf(off), out = [];
 
-  for (const t of TASKS){
+  for (const t of allTasksFor(off)){
     const match = t.days === 'daily' || (Array.isArray(t.days) && t.days.includes(dn));
     if (!match) continue;
     if (t.biweekly && t.biweekly !== wt) continue;
@@ -379,7 +509,8 @@ function instancesForDay(off){
       const key = keyOf(t.id, owner, dn);
       const d = delegs[key];
       out.push({
-        key, id:t.id, name:t.name, cat:t.cat, mins:t.mins||0, time:t.time||'',
+        key, id:t.id, customId:t.customId||null, once:!!t.once,
+        name:t.name, cat:t.cat, mins:t.mins||0, time:t.time||'',
         weekly: !!t.weekly,
         owner,
         holder: (d && d.status === 'accepted') ? d.to : owner,
@@ -400,9 +531,7 @@ function instancesForDay(off){
 }
 
 function viewFor(person, all){
-  // eigene Aufgaben (inkl. angenommene Übergaben, exkl. abgegebene)
   const own = all.filter(i => i.holder === person);
-  // eingehende Anfragen
   const incoming = all.filter(i => i.pending && i.pending.to === person);
   return own.concat(incoming.filter(i => !own.includes(i)));
 }
@@ -429,10 +558,11 @@ function render(){
 
   for (const p of shown){
     const list = viewFor(p, all);
-    const openTotal = list.filter(i => i.holder === p && !i.done).reduce((s,i) => s+i.mins, 0);
-    const total = list.filter(i => i.holder === p).reduce((s,i) => s+i.mins, 0);
-    const cnt = list.filter(i => i.holder === p).length;
-    const doneCnt = list.filter(i => i.holder === p && i.done).length;
+    const mine = list.filter(i => i.holder === p);
+    const openTotal = mine.filter(i => !i.done).reduce((s,i) => s+i.mins, 0);
+    const total = mine.reduce((s,i) => s+i.mins, 0);
+    const cnt = mine.length;
+    const doneCnt = mine.filter(i => i.done).length;
     const pct = cnt ? Math.round(doneCnt/cnt*100) : 0;
 
     const panel = document.createElement('div');
@@ -471,7 +601,7 @@ function render(){
           lab.className = 'slabel';
           lab.textContent = i.weekly ? 'Wochenaufgaben' : 'Tagesaufgaben';
           tw.appendChild(lab);
-          prevCat = null; // Kategorie-Label bei neuem Abschnitt immer neu zeigen
+          prevCat = null;
         }
         prevWeekly = i.weekly;
 
@@ -503,6 +633,7 @@ function taskRow(i, viewer){
 
   const timeStr = i.time ? '<span class="ttime">'+i.time+'</span>' : '';
   const fromStr = i.fromTransfer ? '<span class="ttime">übernommen von '+i.fromTransfer+'</span>' : '';
+  const newPill = i.customId ? '<span class="newpill">NEU</span>' : '';
 
   let right = '';
   if (isIncoming){
@@ -514,12 +645,13 @@ function taskRow(i, viewer){
             '<div class="acts"><button class="abtn no" data-act="cancel" data-key="'+i.key+'">✕</button></div>';
   } else {
     right = '<button class="dbtn'+(openPicker===i.key+'|'+viewer?' active':'')+'" data-act="picker" data-key="'+i.key+'" data-viewer="'+viewer+'">'+ICON_HAND+'</button>';
+    if (i.customId) right += '<button class="delbtn" data-act="delcustom" data-cid="'+i.customId+'" title="Aufgabe löschen">✕</button>';
   }
 
   row.innerHTML =
     (isIncoming ? '<div class="chk" style="visibility:hidden"></div>'
                 : '<div class="chk" data-act="check" data-key="'+i.key+'"></div>')+
-    '<div class="tname">'+i.name+timeStr+fromStr+'</div>'+
+    '<div class="tname">'+i.name+newPill+timeStr+fromStr+'</div>'+
     '<div class="tmins">'+i.mins+' Min</div>'+
     right;
   return row;
@@ -537,6 +669,63 @@ function pickerRow(i, viewer){
   row.innerHTML = html;
   return row;
 }
+
+// ══════════════════════════════════════════════════════════
+// NEUE AUFGABE — Formular
+// ══════════════════════════════════════════════════════════
+const catSel = document.getElementById('fCat');
+CAT_ORDER.forEach(c => {
+  const o = document.createElement('option');
+  o.value = c; o.textContent = c;
+  if (c === 'Sonstiges') o.selected = true;
+  catSel.appendChild(o);
+});
+
+const formEl = document.getElementById('newForm');
+
+function toggleForm(show){
+  formEl.style.display = show ? 'block' : 'none';
+  if (show){
+    document.getElementById('fDay').value = String(dayNumOf(dayOffset));
+    document.getElementById('fDate').value = isoOf(dateFor(dayOffset));
+    document.getElementById('fName').focus();
+  }
+}
+function syncFreqFields(){
+  const f = document.getElementById('fFreq').value;
+  document.getElementById('wrapDay').style.display  = f === 'weekly' ? 'flex' : 'none';
+  document.getElementById('wrapDate').style.display = f === 'once'   ? 'flex' : 'none';
+}
+document.getElementById('fFreq').addEventListener('change', syncFreqFields);
+syncFreqFields();
+
+document.getElementById('newBtn').addEventListener('click', () => {
+  toggleForm(formEl.style.display === 'none');
+});
+document.getElementById('fCancel').addEventListener('click', () => toggleForm(false));
+
+document.getElementById('fSave').addEventListener('click', () => {
+  const name = document.getElementById('fName').value.trim();
+  if (!name){ document.getElementById('fName').focus(); return; }
+  const freq = document.getElementById('fFreq').value;
+
+  const rec = {
+    name: name,
+    cat:  document.getElementById('fCat').value,
+    freq: freq,
+    assign: document.getElementById('fWho').value,
+    mins: Math.max(1, parseInt(document.getElementById('fMins').value,10) || 10),
+    time: document.getElementById('fTime').value,
+  };
+  if (freq === 'weekly') rec.day  = parseInt(document.getElementById('fDay').value,10);
+  if (freq === 'once')   rec.date = document.getElementById('fDate').value;
+
+  addCustom(rec);
+
+  document.getElementById('fName').value = '';
+  document.getElementById('fMins').value = '10';
+  toggleForm(false);
+});
 
 // ══════════════════════════════════════════════════════════
 // EVENTS
@@ -562,6 +751,8 @@ document.getElementById('panels').addEventListener('click', e => {
     acceptTask(key); render();
   } else if (act === 'decline' || act === 'cancel'){
     clearDeleg(key); render();
+  } else if (act === 'delcustom'){
+    if (confirm('Diese Aufgabe wirklich löschen?')) removeCustom(el.dataset.cid);
   }
 });
 
@@ -579,6 +770,7 @@ document.getElementById('filterBar').addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
+  if (e.target.matches('input,select')) return;
   if (e.key === 'ArrowLeft')  { dayOffset--; openPicker=null; bindWeek(); }
   if (e.key === 'ArrowRight') { dayOffset++; openPicker=null; bindWeek(); }
 });
@@ -587,6 +779,7 @@ document.addEventListener('keydown', e => {
 let tx = 0, ty = 0;
 document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive:true});
 document.addEventListener('touchend', e => {
+  if (e.target.closest('.newcard')) return;
   const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
   if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy)*2){
     dayOffset += dx < 0 ? 1 : -1; openPicker = null; bindWeek();
