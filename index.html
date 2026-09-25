@@ -38,6 +38,17 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .kwbadge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;background:#F0F0F4;color:var(--mute);margin-left:6px;vertical-align:2px}
 .kwbadge.putzfrau{background:#E6EFFB;color:#3A6FB0}
 
+/* ───── Putzfrau-Steuerung ───── */
+.pfbox{max-width:420px;margin:12px auto 0;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px}
+.pflabel{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);margin-bottom:8px;text-align:center}
+.pftoggle{display:flex;gap:8px;justify-content:center}
+.pfbtn{flex:1;max-width:140px;border:1.5px solid var(--line);background:#fff;padding:8px 4px;border-radius:10px;font-size:13px;font-weight:700;color:var(--mute);cursor:pointer;transition:all .15s}
+.pfbtn.yes.active{background:#E6EFFB;border-color:#3A6FB0;color:#3A6FB0}
+.pfbtn.no.active{background:#FFF0E0;border-color:#B0700A;color:#8A5606}
+.pfauto{font-size:10px;color:#C7C7CC;text-align:center;margin-top:6px}
+.pfcomment{width:100%;margin-top:10px;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit;color:var(--ink);resize:vertical;min-height:38px}
+.pfcomment:focus{outline:none;border-color:#9FA0A6}
+
 .toprow{display:flex;justify-content:center;align-items:center;gap:14px;margin-top:10px}
 .todaybtn{border:none;background:none;font-size:12px;color:#3A6FB0;cursor:pointer;font-weight:600}
 .newbtn{border:1.5px solid var(--ink);background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:11px;cursor:pointer;transition:opacity .15s}
@@ -168,6 +179,16 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
   <div class="toprow">
     <button class="todaybtn" id="todayBtn">Heute</button>
     <button class="newbtn" id="newBtn">+ Neue Aufgabe</button>
+  </div>
+
+  <div class="pfbox">
+    <div class="pflabel">Putzfrau diese Woche (KW <span id="pfKw"></span>)</div>
+    <div class="pftoggle">
+      <button class="pfbtn yes" id="pfYes" data-act="pfset" data-v="ja">Ja, kommt</button>
+      <button class="pfbtn no" id="pfNo" data-act="pfset" data-v="nein">Nein, kommt nicht</button>
+    </div>
+    <div class="pfauto" id="pfAuto"></div>
+    <textarea class="pfcomment" id="pfComment" placeholder="Kommentar (optional), z.B. „kommt nur kurz, Bäder ausgelassen“"></textarea>
   </div>
 </div>
 
@@ -413,10 +434,16 @@ const KW_NO_BATH = [39];   // Bäder/WC entfallen, Rest bleibt
 
 function weekTypeOf(off){
   const kw = kwOf(off);
+  const manual = putzfrau[kw] && putzfrau[kw].status;
+  if (manual) return manual === 'ja' ? 'B' : 'A';   // Ja = Putzfrau kommt, Nein = kommt nicht
   if (KW_OVERRIDE[kw]) return KW_OVERRIDE[kw];
   return kw%2===1 ? 'A' : 'B';
 }
-function bathSkipped(off){ return KW_NO_BATH.indexOf(kwOf(off)) !== -1; }
+function bathSkipped(off){
+  const kw = kwOf(off);
+  if (putzfrau[kw] && putzfrau[kw].status) return false;   // manuelle Angabe ersetzt die Bad-Ausnahme
+  return KW_NO_BATH.indexOf(kw) !== -1;
+}
 
 function todayOffset(){
   const t = new Date(); t.setHours(0,0,0,0);
@@ -458,6 +485,32 @@ function bindWeek(){
 
 // Eigene Aufgaben: global, nicht pro Woche
 db.ref('customTasks').on('value', s => { customs = s.val() || {}; render(); });
+
+// Putzfrau-Übersteuerung pro KW: global, { kw: {status:'ja'|'nein', comment:'...'} }
+let putzfrau = {};
+db.ref('putzfrau').on('value', s => { putzfrau = s.val() || {}; render(); });
+
+function setPutzfrauStatus(kw, status){
+  const cur = putzfrau[kw] || {};
+  const next = status === cur.status ? null : status;   // erneutes Klicken hebt Auswahl auf
+  if (next){
+    db.ref('putzfrau/'+kw+'/status').set(next);
+    putzfrau[kw] = {...cur, status: next};
+  } else {
+    db.ref('putzfrau/'+kw+'/status').remove();
+    if (putzfrau[kw]) delete putzfrau[kw].status;
+  }
+  render();
+}
+function setPutzfrauComment(kw, text){
+  if (text){
+    db.ref('putzfrau/'+kw+'/comment').set(text);
+    putzfrau[kw] = {...(putzfrau[kw]||{}), comment: text};
+  } else {
+    db.ref('putzfrau/'+kw+'/comment').remove();
+    if (putzfrau[kw]) delete putzfrau[kw].comment;
+  }
+}
 
 function setCheck(key, val){
   const r = db.ref('checks/kw'+kwOf(dayOffset)+'/'+key);
@@ -569,6 +622,8 @@ function render(){
     d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear()+
     '<span class="kwbadge'+(wt==='B'||noBath?' putzfrau':'')+'">KW '+kw+' · '+badgeTxt+'</span>';
   document.getElementById('todayBtn').style.visibility = isToday(off) ? 'hidden' : 'visible';
+
+  renderPfBox(kw);
 
   const all = instancesForDay(off);
   const shown = filterPerson === 'Alle' ? PERSONS : [filterPerson];
@@ -688,6 +743,41 @@ function pickerRow(i, viewer){
   row.innerHTML = html;
   return row;
 }
+
+// ══════════════════════════════════════════════════════════
+// PUTZFRAU-BOX
+// ══════════════════════════════════════════════════════════
+let pfCommentKw = null;   // welche KW gerade im Kommentarfeld steht (verhindert Überschreiben beim Tippen)
+
+function renderPfBox(kw){
+  document.getElementById('pfKw').textContent = kw;
+
+  const entry = putzfrau[kw] || {};
+  const status = entry.status || null;
+  document.getElementById('pfYes').classList.toggle('active', status === 'ja');
+  document.getElementById('pfNo').classList.toggle('active', status === 'nein');
+
+  const autoEl = document.getElementById('pfAuto');
+  autoEl.textContent = status
+    ? ''
+    : 'automatisch berechnet: ' + (weekTypeOf(dayOffset) === 'B' ? 'Putzfrau kommt' : 'kommt nicht') + ' — durch Klick übersteuerbar';
+
+  const commentEl = document.getElementById('pfComment');
+  if (pfCommentKw !== kw || document.activeElement !== commentEl){
+    commentEl.value = entry.comment || '';
+    pfCommentKw = kw;
+  }
+}
+
+document.getElementById('pfYes').addEventListener('click', () => setPutzfrauStatus(kwOf(dayOffset), 'ja'));
+document.getElementById('pfNo').addEventListener('click', () => setPutzfrauStatus(kwOf(dayOffset), 'nein'));
+
+let pfCommentTimer = null;
+document.getElementById('pfComment').addEventListener('input', e => {
+  const kw = kwOf(dayOffset), val = e.target.value;
+  clearTimeout(pfCommentTimer);
+  pfCommentTimer = setTimeout(() => setPutzfrauComment(kw, val), 500);
+});
 
 // ══════════════════════════════════════════════════════════
 // NEUE AUFGABE — Formular
