@@ -58,6 +58,7 @@ body{font-family:-apple-system,'SF Pro Text','Helvetica Neue',sans-serif;backgro
 .ptasks{flex:1;padding:12px 0}
 .slabel{font-size:10px;font-weight:800;letter-spacing:.9px;text-transform:uppercase;color:var(--mute);padding:4px 16px 6px}
 .sdivider{height:1px;background:var(--line);margin:8px 16px 2px}
+.catlabel{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#B8B8C0;padding:6px 16px 2px}
 
 /* ───── Task row ───── */
 .trow{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #F7F7F9;position:relative}
@@ -458,6 +459,7 @@ function render(){
     } else {
       let sectionShown = {daily:false, weekly:false};
       let prevWeekly = null;
+      let prevCat = null;
 
       for (const i of list){
         if (!sectionShown[i.weekly?'weekly':'daily']){
@@ -469,8 +471,18 @@ function render(){
           lab.className = 'slabel';
           lab.textContent = i.weekly ? 'Wochenaufgaben' : 'Tagesaufgaben';
           tw.appendChild(lab);
+          prevCat = null; // Kategorie-Label bei neuem Abschnitt immer neu zeigen
         }
         prevWeekly = i.weekly;
+
+        if (i.cat !== prevCat){
+          prevCat = i.cat;
+          const catLab = document.createElement('div');
+          catLab.className = 'catlabel';
+          catLab.textContent = i.cat;
+          tw.appendChild(catLab);
+        }
+
         tw.appendChild(taskRow(i, p));
         if (openPicker === i.key + '|' + p) tw.appendChild(pickerRow(i, p));
       }
