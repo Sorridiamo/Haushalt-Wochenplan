@@ -612,15 +612,11 @@ const ICON_HAND = '<svg viewBox="0 0 24 24"><path d="M9 11.5a3 3 0 1 0 0-6 3 3 0
 
 function render(){
   const off = dayOffset, dn = dayNumOf(off), d = dateFor(off);
-  const wt = weekTypeOf(off), kw = kwOf(off);
+  const kw = kwOf(off);
 
   document.getElementById('dName').textContent = DAY_NAMES[dn-1];
-  const noBath = bathSkipped(off);
-  const badgeTxt = noBath ? 'Putzfrau kurz da · ohne Bäder'
-                          : (wt==='B' ? 'Putzfrau' : 'ohne Putzfrau');
-  document.getElementById('dDate').innerHTML =
-    d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear()+
-    '<span class="kwbadge'+(wt==='B'||noBath?' putzfrau':'')+'">KW '+kw+' · '+badgeTxt+'</span>';
+  document.getElementById('dDate').textContent =
+    d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear()+' · KW '+kw;
   document.getElementById('todayBtn').style.visibility = isToday(off) ? 'hidden' : 'visible';
 
   renderPfBox(kw);
