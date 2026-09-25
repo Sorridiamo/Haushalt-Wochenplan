@@ -369,10 +369,10 @@ const TASKS = [
   {id:'p-eg',   name:'Eingangsbereich putzen', cat:'Putzen', days:[6], assign:'putzGang', mins:5,  biweekly:'A', weekly:true},
   {id:'p-wk',   name:'Waschküche putzen',      cat:'Putzen', days:[6], assign:'putzGang', mins:5,  biweekly:'A', weekly:true},
 
-  {id:'bad-du', name:'Bad mit Dusche reinigen',    cat:'Putzen', days:[6], assign:'Noela', mins:15, biweekly:'A', weekly:true},
-  {id:'bad-wa', name:'Bad mit Badewanne reinigen', cat:'Putzen', days:[6], assign:'Noela', mins:20, biweekly:'A', weekly:true},
-  {id:'bad-ga', name:'Gäste-WC reinigen',          cat:'Putzen', days:[6], assign:'Marco', mins:7,  biweekly:'A', weekly:true},
-  {id:'bad-si', name:'Simeo-WC reinigen',          cat:'Putzen', days:[6], assign:'Simeo', mins:5,  biweekly:'A', weekly:true},
+  {id:'bad-du', name:'Bad mit Dusche reinigen',    cat:'Putzen', days:[6], assign:'Noela', mins:15, biweekly:'A', bath:true, weekly:true},
+  {id:'bad-wa', name:'Bad mit Badewanne reinigen', cat:'Putzen', days:[6], assign:'Noela', mins:20, biweekly:'A', bath:true, weekly:true},
+  {id:'bad-ga', name:'Gäste-WC reinigen',          cat:'Putzen', days:[6], assign:'Marco', mins:7,  biweekly:'A', bath:true, weekly:true},
+  {id:'bad-si', name:'Simeo-WC reinigen',          cat:'Putzen', days:[6], assign:'Simeo', mins:5,  biweekly:'A', bath:true, weekly:true},
   {id:'bettw',  name:'Bettwäsche wechseln',        cat:'Betten', days:[6], assign:'self',  mins:10, biweekly:'A', weekly:true},
 ];
 
@@ -401,7 +401,22 @@ function isoOf(d){
 function weekOffsetOf(off){ return Math.floor(off/7); }
 function dayNumOf(off){ return ((off%7)+7)%7 + 1; }          // 1=Mo … 7=So
 function kwOf(off){ return REF_KW + weekOffsetOf(off); }
-function weekTypeOf(off){ return kwOf(off)%2===1 ? 'A' : 'B'; }
+// Putzfrau-Plan: 'A' = kommt NICHT (wir putzen alles), 'B' = kommt (wir putzen nicht)
+// Grundregel ab 15. Oktober 2026 (KW 42): gerade KW = Putzfrau, ungerade KW = ohne Putzfrau
+// Ausnahmen für die laufenden Wochen:
+const KW_OVERRIDE = {
+  39: 'A',   // diese Woche: Putzfrau war nur kurz da → Bäder entfallen (siehe KW_NO_BATH)
+  40: 'A',   // Putzfrau kommt nicht → alles putzen
+  41: 'A',   // Putzfrau kommt nicht → alles putzen
+};
+const KW_NO_BATH = [39];   // Bäder/WC entfallen, Rest bleibt
+
+function weekTypeOf(off){
+  const kw = kwOf(off);
+  if (KW_OVERRIDE[kw]) return KW_OVERRIDE[kw];
+  return kw%2===1 ? 'A' : 'B';
+}
+function bathSkipped(off){ return KW_NO_BATH.indexOf(kwOf(off)) !== -1; }
 
 function todayOffset(){
   const t = new Date(); t.setHours(0,0,0,0);
@@ -504,6 +519,7 @@ function instancesForDay(off){
     const match = t.days === 'daily' || (Array.isArray(t.days) && t.days.includes(dn));
     if (!match) continue;
     if (t.biweekly && t.biweekly !== wt) continue;
+    if (t.bath && bathSkipped(off)) continue;
 
     for (const owner of resolvePersons(t.assign, wt)){
       const key = keyOf(t.id, owner, dn);
@@ -546,9 +562,12 @@ function render(){
   const wt = weekTypeOf(off), kw = kwOf(off);
 
   document.getElementById('dName').textContent = DAY_NAMES[dn-1];
+  const noBath = bathSkipped(off);
+  const badgeTxt = noBath ? 'Putzfrau kurz da · ohne Bäder'
+                          : (wt==='B' ? 'Putzfrau' : 'ohne Putzfrau');
   document.getElementById('dDate').innerHTML =
     d.getDate()+'. '+MONTHS[d.getMonth()]+' '+d.getFullYear()+
-    '<span class="kwbadge'+(wt==='B'?' putzfrau':'')+'">KW '+kw+' · '+(wt==='B'?'Putzfrau':'ohne Putzfrau')+'</span>';
+    '<span class="kwbadge'+(wt==='B'||noBath?' putzfrau':'')+'">KW '+kw+' · '+badgeTxt+'</span>';
   document.getElementById('todayBtn').style.visibility = isToday(off) ? 'hidden' : 'visible';
 
   const all = instancesForDay(off);
